@@ -18,10 +18,13 @@ type Release struct {
 
 func main() {
 	url := "https://gist.githubusercontent.com/dme86/20de09977037ab339ef613e5a928de14/raw/85309c431600a3ef110b66772b582debbe672f9d/gistfile1.txt"
+	// Fetch the GitHub API token from the environment variable
+	githubToken := os.Getenv("GITHUB_TOKEN")
 
 	apiURL := "https://api.github.com/"
 
-	err := checkGitHubAPIAccess(apiURL)
+	// Call the function and pass the API URL
+	err := checkGitHubAPIAccess(apiURL, githubToken)
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
@@ -49,7 +52,7 @@ func main() {
 		}
 
 		// Print version and binary availability
-		fmt.Printf("Release version for %s: %s |bin=%s\n", concatenatedURL, release.TagName, checkBinaryAvailability(release, "MyBinary"))
+		fmt.Printf("Release version for %s: %s |bin=%s|\n", concatenatedURL, release.TagName, checkBinaryAvailability(release, "MyBinary"))
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -58,7 +61,7 @@ func main() {
 }
 
 // checkGitHubAPIAccess checks if you can access the GitHub API
-func checkGitHubAPIAccess(apiURL string) error {
+func checkGitHubAPIAccess(apiURL string, token string) error {
 	// Make a request to the GitHub API
 	response, err := http.Get(apiURL)
 	if err != nil {
@@ -117,7 +120,7 @@ func checkBinaryAvailability(release *Release, binaryName string) string {
 	// Iterate through assets of the release and check for binary presence
 	for _, asset := range release.Assets {
 		// Print intermediate result
-		fmt.Printf("Checking asset: %s\n", asset.Name)
+		// fmt.Printf("Checking asset: %s\n", asset.Name)
 
 		// Check if the asset name contains ".zip" or ".tar.gz"
 		for _, suffix := range validSuffixes {
