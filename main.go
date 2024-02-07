@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -17,6 +18,14 @@ type Release struct {
 
 func main() {
 	url := "https://gist.githubusercontent.com/dme86/20de09977037ab339ef613e5a928de14/raw/85309c431600a3ef110b66772b582debbe672f9d/gistfile1.txt"
+
+	apiURL := "https://api.github.com/"
+
+	err := checkGitHubAPIAccess(apiURL)
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
 
 	// Fetch the content of the URL
 	response, err := http.Get(url)
@@ -48,6 +57,26 @@ func main() {
 	}
 }
 
+// checkGitHubAPIAccess checks if you can access the GitHub API
+func checkGitHubAPIAccess(apiURL string) error {
+	// Make a request to the GitHub API
+	response, err := http.Get(apiURL)
+	if err != nil {
+		return fmt.Errorf("Error making request: %v", err)
+	}
+	defer response.Body.Close()
+
+	// Check the HTTP status code
+	if response.StatusCode == http.StatusOK {
+		fmt.Println("You can access the GitHub API.")
+		return nil
+	} else if response.StatusCode == http.StatusForbidden {
+		return fmt.Errorf("Unable to access the GitHub API. Status code: %d", response.StatusCode)
+	}
+
+	return fmt.Errorf("Unexpected status code: %d", response.StatusCode)
+}
+
 // concatenateURL concatenates "https://github.com/" with the given line
 func concatenateURL(line string) string {
 	return "https://github.com/" + line
@@ -73,6 +102,7 @@ func getGitHubReleaseInfo(repoURL string) (*Release, error) {
 
 	return &release, nil
 }
+
 // checkBinaryAvailability checks if there are binary assets in the latest release
 func checkBinaryAvailability(release *Release, binaryName string) string {
 	// Print out information about assets for debugging
@@ -105,4 +135,3 @@ func checkBinaryAvailability(release *Release, binaryName string) string {
 
 	return fmt.Sprintf("nope for %s. Asset names: %v", release.TagName, assetNames)
 }
-
